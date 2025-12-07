@@ -1,0 +1,54 @@
+naics_code,industry_name,sector,industry_category
+3342,Audio and Video Equipment Manufacturing,Manufacturing,Technology Hardware
+3344,Semiconductor and Other Electronic Component Manufacturing,Manufacturing,Technology Hardware
+33411,Computer and Peripheral Equipment Manufacturing,Manufacturing,Technology Hardware
+33911,Medical Equipment and Supplies Manufacturing,Manufacturing,Healthcare Technology
+325412,Pharmaceutical Preparation Manufacturing,Manufacturing,Pharmaceuticals
+334111,Electronic Computer Manufacturing,Manufacturing,Technology Hardware
+334413,Semiconductor and Related Device Manufacturing,Manufacturing,Technology Hardware
+336110,Automobile Manufacturing,Manufacturing,Automotive
+336111,Automobile Manufacturing,Manufacturing,Automotive
+45411,Electronic Shopping and Mail-Order Houses,Retail,E-Commerce
+454110,Electronic Shopping and Mail-Order Houses,Retail,E-Commerce
+455110,Department Stores,Retail,Retail
+5182,Data Processing and Hosting Services,Information,Technology Services
+51321,Software Publishers,Information,Software/Tech
+51929,Other Information Services,Information,Technology Services
+511210,Software Publishers,Information,Software/Tech
+513210,Software Publishers,Information,Software/Tech
+518210,Computing Infrastructure Providers and Data Processing Services,Information,Cloud/Data Services
+519290,Other Information Services,Information,Technology Services
+522110,Commercial Banking,Finance,Banking
+522210,Credit Card Issuing,Finance,Banking
+522320,Financial Transactions Processing,Finance,Financial Services
+52399,Other Financial Investment Activities,Finance,Investment
+523110,Investment Banking and Securities Dealing,Finance,Investment Banking
+523150,Investment Banking and Securities Brokerage,Finance,Investment Banking
+523920,Portfolio Management,Finance,Asset Management
+523940,Portfolio Management and Investment Advice,Finance,Asset Management
+524114,Direct Health and Medical Insurance Carriers,Finance,Insurance
+5415,Computer Systems Design Services,Professional Services,Technology Consulting
+5416,Management and Technical Consulting Services,Professional Services,Consulting
+54121,Accounting Services,Professional Services,Accounting
+54151,Computer Systems Design Services,Professional Services,Technology Consulting
+54161,Management Consulting Services,Professional Services,Management Consulting
+54171,Research and Development in Physical Sciences,Professional Services,R&D
+54199,Other Professional Services,Professional Services,Other Professional
+541110,Legal Services,Professional Services,Legal
+541211,Offices of Certified Public Accountants,Professional Services,Accounting
+541310,Architectural Services,Professional Services,Architecture
+541330,Engineering Services,Professional Services,Engineering
+541511,Custom Computer Programming Services,Professional Services,Software Development
+541512,Computer Systems Design Services,Professional Services,IT Consulting
+541519,Other Computer Related Services,Professional Services,IT Services
+541611,Administrative Management Consulting Services,Professional Services,Management Consulting
+541613,Marketing Consulting Services,Professional Services,Marketing
+541714,Research and Development in Biotechnology,Professional Services,Biotech R&D
+541715,Research and Development in Physical Sciences,Professional Services,Scientific R&D
+551112,Offices of Other Holding Companies,Management,Corporate Management
+561320,Temporary Help Services,Administrative Services,Staffing/Recruiting
+611110,Elementary and Secondary Schools,Education,K-12 Education
+611310,Colleges and Universities,Education,Higher Education
+62111,Offices of Physicians,Healthcare,Medical Practice
+621111,Offices of Physicians,Healthcare,Medical Practice
+622110,General Medical and Surgical Hospitals,Healthcare,Hospitals
