@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   if (state) {
     values.push(state);
-    conditions.push(`state = $${values.length}`);
+    conditions.push(`worksite_state = $${values.length}`);
   }
 
   const whereClause =
