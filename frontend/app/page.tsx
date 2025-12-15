@@ -6,12 +6,14 @@ import IndustryCharts from '@/components/IndustryCharts';
 import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
+import CovidTrendCharts from '@/components/CovidTrendCharts';
 
 export default function Dashboard() {
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
 
   // Filter states
   const [selectedYear, setSelectedYear] = useState<number>(2024);
@@ -77,6 +79,33 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Dashboard Tabs */}
+        <div className="mb-6 border-b border-slate-200">
+          <nav className="flex space-x-6">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`pb-2 font-medium ${
+                activeTab === 'overview'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Overview
+            </button>
+        
+            <button
+              onClick={() => setActiveTab('covid')}
+              className={`pb-2 font-medium ${
+                activeTab === 'covid'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              COVID Trends
+            </button>
+          </nav>
+        </div>
+        
         {/* Filters */}
         <DashboardFilters
           selectedYear={selectedYear}
@@ -118,30 +147,39 @@ export default function Dashboard() {
         {/* Dashboard Content */}
         {!loading && !error && (
           <>
-            {/* Geographic Heatmap - Full Width */}
-            <div className="mb-8">
-              <StateHeatmap data={stateData} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Industry Section */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-slate-800">
-                  Industry Analysis
-                </h2>
-                <IndustryCharts data={industryData} />
-              </div>
-
-              {/* State Section */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-slate-800">
-                  State Analysis
-                </h2>
-                <StateCharts data={stateData} />
-              </div>
-            </div>
+            {activeTab === 'overview' && (
+              <>
+                {/* Geographic Heatmap - Full Width */}
+                <div className="mb-8">
+                  <StateHeatmap data={stateData} />
+                </div>
+        
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Industry Section */}
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-semibold text-slate-800">
+                      Industry Analysis
+                    </h2>
+                    <IndustryCharts data={industryData} />
+                  </div>
+        
+                  {/* State Section */}
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-semibold text-slate-800">
+                      State Analysis
+                    </h2>
+                    <StateCharts data={stateData} />
+                  </div>
+                </div>
+              </>
+            )}
+        
+            {activeTab === 'covid' && (
+              <CovidTrendCharts />
+            )}
           </>
         )}
+
 
         {/* Summary Stats */}
         {!loading && !error && (
