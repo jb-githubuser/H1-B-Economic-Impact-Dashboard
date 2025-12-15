@@ -11,18 +11,25 @@ import {
 } from 'recharts';
 
 interface CovidRow {
-  industry_name: string;
+  industry_name: string | null;
   app_count_change_2019_to_2020_pct: number;
 }
 
 export default function CovidImpactBarCharts({ data }: { data: CovidRow[] }) {
   const chartData = data
+    .filter(d => d.industry_name)
     .map(d => ({
-      industry: d.industry_name,
+      industry: d.industry_name!,
       change: Number(d.app_count_change_2019_to_2020_pct),
-    }))
-    .sort((a, b) => a.change - b.change)
-    .slice(0, 10);
+    }));
+
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-slate-500">
+        No COVID impact data available.
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -33,14 +40,17 @@ export default function CovidImpactBarCharts({ data }: { data: CovidRow[] }) {
         % change in H-1B applications (2019 → 2020)
       </p>
 
-      <div className="h-[360px]">
+      <div className="h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical">
-            <XAxis type="number" tickFormatter={v => `${v}%`} />
+            <XAxis
+              type="number"
+              tickFormatter={v => `${v}%`}
+            />
             <YAxis
               type="category"
               dataKey="industry"
-              width={220}
+              width={260}
             />
             <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
             <Bar dataKey="change">
