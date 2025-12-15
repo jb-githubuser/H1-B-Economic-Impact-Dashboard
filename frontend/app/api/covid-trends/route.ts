@@ -6,16 +6,18 @@ export async function GET() {
 
   const query = `
     SELECT
-      c.industry,
-      n.industry_name,
-      c.app_count_change_2019_to_2020_pct
-    FROM mv_covid_trend_analysis c
-    LEFT JOIN naics_lookup n
-      ON c.industry = n.naics_code
-    WHERE c.app_count_change_2019_to_2020_pct IS NOT NULL
-    ORDER BY c.app_count_change_2019_to_2020_pct ASC
-    LIMIT 50;
+      worksite_state,
+      ROUND(
+        (SUM(app_count_2020) - SUM(app_count_2019))::numeric
+        / NULLIF(SUM(app_count_2019), 0) * 100,
+        2
+      ) AS pct_change_2019_2020
+    FROM mv_covid_trend_analysis
+    WHERE worksite_state IS NOT NULL
+    GROUP BY worksite_state
+    ORDER BY pct_change_2019_2020 ASC;
   `;
+
 
   try {
     const { rows } = await pool.query(query);
