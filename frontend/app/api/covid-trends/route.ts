@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     SELECT *
     FROM mv_covid_trend_analysis
     ${whereClause}
-    ORDER BY industry, state;
+    ORDER BY industry, worksite_state;
   `;
 
   const { rows } = await pool.query(query, values);
