@@ -12,6 +12,7 @@ import {
 
 interface ExposureRow {
   industry: string;
+  industry_name: string;
   exposure_score: number;
   volume_share_pct: number;
   wage_mass_share_pct: number;
@@ -21,13 +22,13 @@ interface ExposureRow {
 
 export default function ExposureTopIndustries({ data }: { data: ExposureRow[] }) {
   const chartData = data
-    .filter(d => d.industry && d.exposure_score)
+    .filter(d => d.industry_name && d.exposure_score)
     .map(d => ({
-      industry: d.industry,
+      industry: d.industry_name,
       exposure: Number(d.exposure_score),
-      volume: Number(d.volume_share_pct) * 0.4,
-      wageMass: Number(d.wage_mass_share_pct) * 0.3,
-      hhi: Number(d.hhi_score) * 0.3,
+      volume: Number(d.volume_share_pct) * 0.5,
+      wageMass: Number(d.wage_mass_share_pct) * 0.4,
+      hhi: Number(d.hhi_score) * 0.1,
       feeShock: Number(d.estimated_fee_shock_millions),
     }))
     .sort((a, b) => b.exposure - a.exposure)
@@ -54,7 +55,7 @@ export default function ExposureTopIndustries({ data }: { data: ExposureRow[] })
         Top Industries by Policy Exposure Score
       </h3>
       <p className="text-sm text-slate-500 mb-4">
-        Vulnerability to $100K H-1B fee increase. Score = 40% volume + 30% wage mass + 30% HHI.
+        Vulnerability to $100K H-1B fee increase. Score = 50% volume + 40% wage mass + 10% HHI.
       </p>
       <div className="h-[480px]">
         <ResponsiveContainer width="100%" height="100%">
