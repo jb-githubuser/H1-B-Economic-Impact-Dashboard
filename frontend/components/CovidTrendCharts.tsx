@@ -1,86 +1,89 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend,
-} from 'recharts';
+import { useEffect, useState } from 'react';
 
-interface Props {
-  data: any[];
+interface CovidTrendRow {
+  industry: string;
+  worksite_state: string;
+  app_count_2019: number | null;
+  app_count_2020: number | null;
+  app_count_2021: number | null;
+  app_count_change_2019_to_2020_pct: number | null;
+  app_count_change_2020_to_2021_pct: number | null;
 }
 
-export default function CovidTrendCharts({ data }: Props) {
-  const topIndustries = data
+export default function CovidTrendCharts() {
+  const [data, setData] = useState<CovidTrendRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCovidTrends();
+  }, []);
+
+  const fetchCovidTrends = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/covid-trends');
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch COVID trends');
+      }
+
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-slate-600">Loading COVID trends…</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-600">Error: {error}</div>;
+  }
+
+  const topDrops = data
     .filter(d => d.app_count_change_2019_to_2020_pct !== null)
-    .sort((a, b) =>
-      a.app_count_change_2019_to_2020_pct -
-      b.app_count_change_2019_to_2020_pct
+    .sort(
+      (a, b) =>
+        (a.app_count_change_2019_to_2020_pct ?? 0) -
+        (b.app_count_change_2019_to_2020_pct ?? 0)
     )
     .slice(0, 10);
 
   return (
-    <div className="space-y-12">
-      {/* Application Change Bar Chart */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Largest Application Declines (2019 → 2020)
-        </h2>
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={topIndustries} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" tickFormatter={(v) => `${v}%`} />
-            <YAxis type="category" dataKey="industry" width={180} />
-            <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-            <Bar
-              dataKey="app_count_change_2019_to_2020_pct"
-              fill="#ef4444"
-              name="Application Change (%)"
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold text-slate-800">
+        COVID Impact on H-1B Applications
+      </h2>
 
-      {/* Wage Trend Line Chart */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Average Wage Trends Across COVID Periods
-        </h2>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={data.slice(0, 15)}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="industry" hide />
-            <YAxis tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: number) => `$${v.toLocaleString()}`} />
-            <Legend />
-            <Line
-              dataKey="avg_wage_2019"
-              stroke="#2563eb"
-              name="2019"
-              strokeWidth={2}
-            />
-            <Line
-              dataKey="avg_wage_2020"
-              stroke="#f59e0b"
-              name="2020"
-              strokeWidth={2}
-            />
-            <Line
-              dataKey="avg_wage_2021"
-              stroke="#16a34a"
-              name="2021"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <p className="text-sm text-slate-600">
+        Top 10 industries with the largest decline in applications from 2019 to 2020.
+      </p>
+
+      <table className="w-full border border-slate-200 rounded-md">
+        <thead className="bg-slate-100">
+          <tr>
+            <th className="p-2 text-left">Industry</th>
+            <th className="p-2 text-right">% Change (2019 → 2020)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topDrops.map((row, i) => (
+            <tr key={`${row.industry}-${i}`} className="border-t">
+              <td className="p-2">{row.industry}</td>
+              <td className="p-2 text-right">
+                {row.app_count_change_2019_to_2020_pct?.toFixed(1)}%
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
