@@ -75,7 +75,7 @@ scored_industries AS (
 )
 SELECT
   si.industry,
-  COALESCE(n.industry_name, si.industry) AS industry_name,
+  n.industry_name,
   si.total_applications,
   ROUND(si.total_wage_mass::numeric, 2) AS total_wage_mass,
   si.employer_count,
@@ -94,7 +94,8 @@ SELECT
     2
   ) AS estimated_fee_shock_millions
 FROM scored_industries si
-LEFT JOIN naics_lookup n ON si.industry = n.naics_code
+INNER JOIN naics_lookup n ON si.industry = n.naics_code
+WHERE n.industry_name IS NOT NULL
 ORDER BY exposure_score DESC;
 
 -- ============================================================================
