@@ -13,6 +13,7 @@ import {
 
 interface ExposureRow {
   industry: string;
+  industry_name: string;
   exposure_score: number;
   hhi_concentration: number;
   total_applications: number;
@@ -21,9 +22,9 @@ interface ExposureRow {
 
 export default function ExposureScatterPlot({ data }: { data: ExposureRow[] }) {
   const chartData = data
-    .filter(d => d.industry && d.exposure_score && d.hhi_concentration)
+    .filter(d => d.industry_name && d.exposure_score && d.hhi_concentration)
     .map(d => ({
-      industry: d.industry,
+      industry: d.industry_name,
       exposure: Number(d.exposure_score),
       hhi: Number(d.hhi_concentration) * 100,
       apps: Number(d.total_applications),
