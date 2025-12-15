@@ -2,37 +2,39 @@
 
 import { useEffect, useState } from 'react';
 import { IndustryMetric, StateMetric, ApiResponse } from '@/lib/types';
+
 import IndustryCharts from '@/components/IndustryCharts';
 import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
-import CovidTrendCharts from '@/components/CovidTrendCharts';
+
 import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
 import CovidRecoveryChart from '@/components/CovidRecoveryChart';
 
 export default function Dashboard() {
+  // ---------------------------
+  // State
+  // ---------------------------
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
   const [covidData, setCovidData] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
 
-  // Filter states
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
   const [selectedState, setSelectedState] = useState<string>('');
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedYear, selectedIndustry, selectedState]);
-
-  const fetchData = async () => {
+  // ---------------------------
+  // Fetch overview data (filters apply)
+  // ---------------------------
+  const fetchOverviewData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Build query parameters
       const industryParams = new URLSearchParams();
       if (selectedYear) industryParams.append('year', selectedYear.toString());
       if (selectedIndustry) industryParams.append('industry', selectedIndustry);
@@ -41,37 +43,61 @@ export default function Dashboard() {
       if (selectedYear) stateParams.append('year', selectedYear.toString());
       if (selectedState) stateParams.append('state', selectedState);
 
-      // Fetch both datasets in parallel
       const [industryRes, stateRes] = await Promise.all([
         fetch(`/api/industry-metrics?${industryParams.toString()}`),
         fetch(`/api/state-metrics?${stateParams.toString()}`),
       ]);
 
       if (!industryRes.ok || !stateRes.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error('Failed to fetch overview data');
       }
 
       const industryJson: ApiResponse<IndustryMetric[]> = await industryRes.json();
       const stateJson: ApiResponse<StateMetric[]> = await stateRes.json();
 
-      if (!industryJson.success || !stateJson.success) {
-        throw new Error(industryJson.error || stateJson.error || 'Unknown error');
-      }
-
       setIndustryData(industryJson.data || []);
       setStateData(stateJson.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------------------------
+  // Fetch COVID data (ONCE)
+  // ---------------------------
+  const fetchCovidData = async () => {
+    try {
+      const res = await fetch('/api/covid-trends');
+      if (!res.ok) throw new Error('Failed to fetch COVID trends');
+
+      const data = await res.json();
+      setCovidData(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ---------------------------
+  // Effects
+  // ---------------------------
+  useEffect(() => {
+    fetchOverviewData();
+  }, [selectedYear, selectedIndustry, selectedState]);
+
+  useEffect(() => {
+    fetchCovidData();
+  }, []);
+
+  // ---------------------------
+  // Render
+  // ---------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-slate-900">
             H1-B Economic Impact Dashboard
           </h1>
@@ -81,8 +107,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Tabs */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Tabs */}
         <div className="mb-6 border-b border-slate-200">
           <nav className="flex space-x-6">
             <button
@@ -90,121 +116,82 @@ export default function Dashboard() {
               className={`pb-2 font-medium ${
                 activeTab === 'overview'
                   ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
+                  : 'text-slate-500'
               }`}
             >
               Overview
             </button>
-        
+
             <button
               onClick={() => setActiveTab('covid')}
               className={`pb-2 font-medium ${
                 activeTab === 'covid'
                   ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
+                  : 'text-slate-500'
               }`}
             >
               COVID Trends
             </button>
           </nav>
         </div>
-        
-        {/* Filters */}
-        <DashboardFilters
-          selectedYear={selectedYear}
-          selectedIndustry={selectedIndustry}
-          selectedState={selectedState}
-          onYearChange={setSelectedYear}
-          onIndustryChange={setSelectedIndustry}
-          onStateChange={setSelectedState}
-          industries={Array.from(
-          new Map(
-            industryData
-              .filter(
-                d =>
-                  typeof d.industry_name === 'string' &&
-                  d.industry_name.trim() !== '' &&
-                  d.industry_name !== d.industry
-              )
-              .map(d => [d.industry_name, d.industry_name])
-          ).entries()
-        ).map(([value, label]) => ({ value, label }))}
-          
-          states={Array.from(new Set(stateData.map(d => d.worksite_state))).filter(Boolean)}
-        />
 
-        {/* Loading State */}
+        {/* Filters (Overview only) */}
+        {activeTab === 'overview' && (
+          <DashboardFilters
+            selectedYear={selectedYear}
+            selectedIndustry={selectedIndustry}
+            selectedState={selectedState}
+            onYearChange={setSelectedYear}
+            onIndustryChange={setSelectedIndustry}
+            onStateChange={setSelectedState}
+            industries={Array.from(
+              new Map(
+                industryData
+                  .filter(
+                    d =>
+                      typeof d.industry_name === 'string' &&
+                      d.industry_name.trim() !== '' &&
+                      d.industry_name !== d.industry
+                  )
+                  .map(d => [d.industry_name, d.industry_name])
+              ).entries()
+            ).map(([value, label]) => ({ value, label }))}
+            states={Array.from(new Set(stateData.map(d => d.worksite_state))).filter(Boolean)}
+          />
+        )}
+
+        {/* Loading / Error */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center py-12">
+            <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full" />
           </div>
         )}
 
-        {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">Error: {error}</p>
+            <p className="text-red-800">{error}</p>
           </div>
         )}
 
-        {/* Dashboard Content */}
+        {/* Overview Tab */}
         {!loading && !error && activeTab === 'overview' && (
           <>
             <div className="mb-8">
               <StateHeatmap data={stateData} />
             </div>
-        
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-slate-800">
-                  Industry Analysis
-                </h2>
-                <IndustryCharts data={industryData} />
-              </div>
-        
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-slate-800">
-                  State Analysis
-                </h2>
-                <StateCharts data={stateData} />
-              </div>
+              <IndustryCharts data={industryData} />
+              <StateCharts data={stateData} />
             </div>
           </>
         )}
 
-        {!loading && !error && activeTab === 'covid' && (
-          <div className="space-y-8">
+        {/* COVID Tab */}
+        {!loading && activeTab === 'covid' && (
+          <div className="space-y-10">
             <CovidImpactBarCharts data={covidData} />
             <CovidRecoveryChart data={covidData} />
-          </div>
-        )}
-
-
-        {/* Summary Stats */}
-        {!loading && !error && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-slate-600">Total Applications</h3>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {industryData.reduce((sum, d) => sum + Number(d.total_applications), 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-slate-600">Average Wage</h3>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                $
-                {Math.round(
-                  industryData.reduce((sum, d) => sum + Number(d.avg_annual_wage), 0) /
-                    (industryData.length || 1)
-                ).toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-slate-600">Unique Employers</h3>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {industryData.reduce((sum, d) => sum + Number(d.unique_employers), 0).toLocaleString()}
-              </p>
-            </div>
           </div>
         )}
       </main>
