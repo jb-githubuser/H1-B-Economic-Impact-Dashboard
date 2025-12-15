@@ -2,10 +2,10 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-type Row = {
-  worksite_state: string | null;
+interface CovidRow {
+  worksite_state: string;
   pct_change_2019_2020: number | string | null;
-};
+}
 
 export default function CovidImpactStateBarCharts({ data }: { data: Row[] }) {
   const chartData = data
