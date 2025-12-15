@@ -41,15 +41,13 @@ export default function ExposureStateHeatmap({ data }: { data: ExposureStateRow[
   }, [data]);
 
   const getColor = (score: number | undefined) => {
-    if (!score) return '#e2e8f0';
+    if (!score || score === 0) return '#e2e8f0';
     if (score >= 30) return '#dc2626';
     if (score >= 20) return '#ea580c';
     if (score >= 10) return '#f59e0b';
     if (score >= 5) return '#fbbf24';
     return '#10b981';
   };
-
-  const maxScore = Math.max(...data.map(d => d.exposure_score || 0));
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -90,10 +88,10 @@ export default function ExposureStateHeatmap({ data }: { data: ExposureStateRow[
               <title>
                 {state}
                 {stateData ? `
-Exposure Score: ${score.toFixed(1)}
-Applications: ${stateData.total_applications.toLocaleString()}
-Fee Impact: $${stateData.estimated_fee_shock_millions}M
-HHI: ${(stateData.hhi_concentration * 100).toFixed(2)}%` : '\nNo data'}
+Exposure Score: ${Number(score).toFixed(1)}
+Applications: ${Number(stateData.total_applications).toLocaleString()}
+Fee Impact: $${Number(stateData.estimated_fee_shock_millions).toFixed(1)}M
+HHI: ${(Number(stateData.hhi_concentration) * 100).toFixed(2)}%` : '\nNo data'}
               </title>
             </g>
           );
