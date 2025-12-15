@@ -7,31 +7,26 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 
-interface CovidIndustryRow {
-  industry_name: string;
-  app_count_change_2019_to_2020_pct: number | string;
+interface CovidRow {
+  industry_name: string | null;
+  app_count_change_2019_to_2020_pct: number;
 }
 
-export default function CovidIndustryChart({
-  data,
-}: {
-  data: CovidIndustryRow[];
-}) {
+export default function CovidImpactBarCharts({ data }: { data: CovidRow[] }) {
   const chartData = data
-    .filter(d => d.industry_name && d.app_count_change_2019_to_2020_pct !== null)
+    .filter(d => d.industry_name)
     .map(d => ({
-      industry_name: d.industry_name,
-      pct_change: Number(d.app_count_change_2019_to_2020_pct),
-    }))
-    .sort((a, b) => a.pct_change - b.pct_change)
-    .slice(0, 15);
+      industry: d.industry_name!,
+      change: Number(d.app_count_change_2019_to_2020_pct),
+    }));
 
   if (chartData.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-slate-500">
-        No industry-level COVID impact data.
+        No COVID impact data available.
       </div>
     );
   }
@@ -39,23 +34,30 @@ export default function CovidIndustryChart({
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-2">
-        COVID Impact by Industry
+        Industries Most Impacted by COVID
       </h3>
       <p className="text-sm text-slate-500 mb-4">
         % change in H-1B applications (2019 → 2020)
       </p>
 
-      <div className="h-[420px]">
+      <div className="h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical">
-            <XAxis type="number" tickFormatter={v => `${v}%`} />
+            <XAxis
+              type="number"
+              tickFormatter={v => `${v}%`}
+            />
             <YAxis
               type="category"
-              dataKey="industry_name"
+              dataKey="industry"
               width={260}
             />
             <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-            <Bar dataKey="pct_change" fill="#dc2626" />
+            <Bar dataKey="change">
+              {chartData.map((_, i) => (
+                <Cell key={i} fill="#dc2626" />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
