@@ -25,3 +25,41 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
+
+export interface CovidTrendMetric {
+  industry: string;
+  state: string;
+
+  app_count_2019: number | null;
+  app_count_2020: number | null;
+  app_count_2021: number | null;
+
+  app_count_change_2019_to_2020_pct: number | null;
+  app_count_change_2020_to_2021_pct: number | null;
+  app_count_change_2019_to_2021_pct: number | null;
+
+  avg_wage_2019: number | null;
+  avg_wage_2020: number | null;
+  avg_wage_2021: number | null;
+
+  median_wage_2019: number | null;
+  median_wage_2020: number | null;
+  median_wage_2021: number | null;
+}
+
+
+export interface ExposureMetric {
+  industry?: string;
+  state?: string;
+
+  total_applications: number;
+  total_wage_mass: number;
+  employer_count: number;
+
+  volume_share_pct: number;
+  wage_mass_share_pct: number;
+  hhi_score: number;
+
+  exposure_score: number;
+  estimated_fee_shock_millions: number;
+}
