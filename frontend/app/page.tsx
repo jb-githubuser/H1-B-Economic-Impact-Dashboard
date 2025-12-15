@@ -201,6 +201,12 @@ export default function Dashboard() {
         {/* COVID Tab */}
         {!loading && activeTab === 'covid' && (
           <div className="space-y-10">
+            <pre className="bg-white p-4 text-xs border">
+              INDUSTRY DATA LENGTH: {covidIndustryData.length}
+              {"\n"}
+              STATE DATA LENGTH: {covidStateData.length}
+            </pre>
+        
             <CovidImpactBarCharts data={covidIndustryData} />
             <CovidImpactStateBarCharts data={covidStateData} />
           </div>
