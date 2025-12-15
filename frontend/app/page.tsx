@@ -11,6 +11,7 @@ import CovidTrendCharts from '@/components/CovidTrendCharts';
 export default function Dashboard() {
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
+  const [covidData, setCovidData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
