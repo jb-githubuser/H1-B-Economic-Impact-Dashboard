@@ -1,5 +1,3 @@
-console.log('STATE CHART RAW DATA:', data);
-
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -10,6 +8,7 @@ interface CovidRow {
 }
 
 export default function CovidImpactStateBarCharts({ data }: { data: Row[] }) {
+  console.log('STATE CHART RAW DATA:', data);
   const chartData = data
     .filter(
       d =>
