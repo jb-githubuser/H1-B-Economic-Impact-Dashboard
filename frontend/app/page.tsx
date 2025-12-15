@@ -174,8 +174,8 @@ export default function Dashboard() {
 
         {!loading && !error && activeTab === 'covid' && (
           <div className="space-y-8">
-            <CovidImpactBarChart data={covidData} />
-            <CovidRecoveryLineChart data={covidData} />
+            <CovidImpactBarCharts data={covidData} />
+            <CovidRecoveryLineCharts data={covidData} />
           </div>
         )}
 
