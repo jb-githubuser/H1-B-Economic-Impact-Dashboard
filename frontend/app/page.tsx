@@ -7,33 +7,41 @@ import IndustryCharts from '@/components/IndustryCharts';
 import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
-import CovidImpactStateBarCharts from '@/components/CovidImpactStateBarCharts';
+
 import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
+import CovidImpactStateBarCharts from '@/components/CovidImpactStateBarCharts';
 
 export default function Dashboard() {
-  // ---------------------------
-  // State
-  // ---------------------------
+  // =====================================================
+  // OVERVIEW STATE (DO NOT TOUCH LOGIC)
+  // =====================================================
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
-  const [covidIndustryData, setCovidIndustryData] = useState<any[]>([]);
-  const [covidStateData, setCovidStateData] = useState<any[]>([]);
-
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
 
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
   const [selectedState, setSelectedState] = useState<string>('');
 
-  // ---------------------------
-  // Fetch overview data (filters apply)
-  // ---------------------------
+  // =====================================================
+  // COVID STATE (COMPLETELY SEPARATE)
+  // =====================================================
+  const [covidIndustryData, setCovidIndustryData] = useState<any[]>([]);
+  const [covidStateData, setCovidStateData] = useState<any[]>([]);
+  const [covidLoading, setCovidLoading] = useState(true);
+
+  // =====================================================
+  // UI STATE
+  // =====================================================
+  const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
+
+  // =====================================================
+  // OVERVIEW FETCH (UNCHANGED BEHAVIOR)
+  // =====================================================
   const fetchOverviewData = async () => {
-    setLoading(true);
-    setError(null);
+    setOverviewLoading(true);
+    setOverviewError(null);
 
     try {
       const industryParams = new URLSearchParams();
@@ -45,8 +53,8 @@ export default function Dashboard() {
       if (selectedState) stateParams.append('state', selectedState);
 
       const [industryRes, stateRes] = await Promise.all([
-        fetch(`/api/industry-metrics?${industryParams.toString()}`),
-        fetch(`/api/state-metrics?${stateParams.toString()}`),
+        fetch(`/api/industry-metrics?${industryParams}`),
+        fetch(`/api/state-metrics?${stateParams}`),
       ]);
 
       if (!industryRes.ok || !stateRes.ok) {
@@ -58,41 +66,38 @@ export default function Dashboard() {
 
       setIndustryData(industryJson.data || []);
       setStateData(stateJson.data || []);
-    } catch (err) {
-      setError('Failed to load dashboard data');
+    } catch {
+      setOverviewError('Failed to load dashboard data');
     } finally {
-      setLoading(false);
+      setOverviewLoading(false);
     }
   };
 
-  // ---------------------------
-  // Fetch COVID data (ONCE)
-  // ---------------------------
+  // =====================================================
+  // COVID FETCH (ONCE, ISOLATED)
+  // =====================================================
   const fetchCovidData = async () => {
     try {
       const [industryRes, stateRes] = await Promise.all([
         fetch('/api/covid-trends'),
         fetch('/api/covid-state-impact'),
       ]);
-  
+
       const industryJson = await industryRes.json();
       const stateJson = await stateRes.json();
-  
-      setCovidIndustryData(Array.isArray(industryJson) ? industryJson : industryJson.data);
-      setCovidStateData(Array.isArray(stateJson) ? stateJson : stateJson.data);
+
+      setCovidIndustryData(industryJson);
+      setCovidStateData(stateJson);
     } catch (err) {
-      console.error(err);
-      setCovidIndustryData([]);
-      setCovidStateData([]);
+      console.error('COVID fetch failed', err);
+    } finally {
+      setCovidLoading(false);
     }
   };
 
-
-
-
-  // ---------------------------
-  // Effects
-  // ---------------------------
+  // =====================================================
+  // EFFECTS (STRICTLY SEPARATED)
+  // =====================================================
   useEffect(() => {
     fetchOverviewData();
   }, [selectedYear, selectedIndustry, selectedState]);
@@ -101,9 +106,9 @@ export default function Dashboard() {
     fetchCovidData();
   }, []);
 
-  // ---------------------------
-  // Render
-  // ---------------------------
+  // =====================================================
+  // RENDER
+  // =====================================================
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -146,7 +151,7 @@ export default function Dashboard() {
           </nav>
         </div>
 
-        {/* Filters (Overview only) */}
+        {/* Filters — OVERVIEW ONLY */}
         {activeTab === 'overview' && (
           <DashboardFilters
             selectedYear={selectedYear}
@@ -171,45 +176,48 @@ export default function Dashboard() {
           />
         )}
 
-        {/* Loading / Error */}
-        {loading && (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full" />
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Overview Tab */}
-        {!loading && !error && activeTab === 'overview' && (
+        {/* OVERVIEW */}
+        {activeTab === 'overview' && (
           <>
-            <div className="mb-8">
-              <StateHeatmap data={stateData} />
-            </div>
+            {overviewLoading && (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full" />
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <IndustryCharts data={industryData} />
-              <StateCharts data={stateData} />
-            </div>
+            {overviewError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800">{overviewError}</p>
+              </div>
+            )}
+
+            {!overviewLoading && !overviewError && (
+              <>
+                <div className="mb-8">
+                  <StateHeatmap data={stateData} />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <IndustryCharts data={industryData} />
+                  <StateCharts data={stateData} />
+                </div>
+              </>
+            )}
           </>
         )}
 
-        {/* COVID Tab */}
-        {!loading && activeTab === 'covid' && (
-          <div className="space-y-10">
-            <pre className="bg-white p-4 text-xs border">
-              INDUSTRY DATA LENGTH: {covidIndustryData.length}
-              {"\n"}
-              STATE DATA LENGTH: {covidStateData.length}
-            </pre>
-        
-            <CovidImpactBarCharts data={covidIndustryData} />
-            <CovidImpactStateBarCharts data={covidStateData} />
-          </div>
+        {/* COVID — ADDITIVE ONLY */}
+        {activeTab === 'covid' && (
+          <>
+            {covidLoading ? (
+              <div className="text-slate-500">Loading COVID data…</div>
+            ) : (
+              <div className="space-y-10">
+                <CovidImpactBarCharts data={covidIndustryData} />
+                <CovidImpactStateBarCharts data={covidStateData} />
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
