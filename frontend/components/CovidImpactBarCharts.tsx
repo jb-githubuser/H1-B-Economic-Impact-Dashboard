@@ -11,15 +11,14 @@ import {
 } from 'recharts';
 
 interface CovidRow {
-  industry: string;
-  app_count_change_2019_to_2020_pct: number | string;
+  industry_name: string;
+  app_count_change_2019_to_2020_pct: number;
 }
 
-export default function CovidImpactBarChart({ data }: { data: CovidRow[] }) {
+export default function CovidImpactBarCharts({ data }: { data: CovidRow[] }) {
   const chartData = data
-    .filter(d => d.app_count_change_2019_to_2020_pct !== null)
     .map(d => ({
-      industry: d.industry,
+      industry: d.industry_name,
       change: Number(d.app_count_change_2019_to_2020_pct),
     }))
     .sort((a, b) => a.change - b.change)
@@ -34,27 +33,19 @@ export default function CovidImpactBarChart({ data }: { data: CovidRow[] }) {
         % change in H-1B applications (2019 → 2020)
       </p>
 
-      <div className="h-[320px]">
+      <div className="h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical">
-            <XAxis
-              type="number"
-              tickFormatter={v => `${v}%`}
-            />
+            <XAxis type="number" tickFormatter={v => `${v}%`} />
             <YAxis
               type="category"
               dataKey="industry"
-              width={90}
+              width={220}
             />
-            <Tooltip
-              formatter={(v: number) => `${v.toFixed(1)}%`}
-            />
+            <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
             <Bar dataKey="change">
-              {chartData.map((entry, idx) => (
-                <Cell
-                  key={idx}
-                  fill={entry.change < -80 ? '#dc2626' : '#f97316'}
-                />
+              {chartData.map((_, i) => (
+                <Cell key={i} fill="#dc2626" />
               ))}
             </Bar>
           </BarChart>
