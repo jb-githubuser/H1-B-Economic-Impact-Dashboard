@@ -1,6 +1,9 @@
 -- ============================================================================
--- FEATURE 3: EXPOSURE SCORE (POLICY SHOCK ANALYSIS) - FIXED
+-- FEATURE 3: EXPOSURE SCORE (POLICY SHOCK ANALYSIS) - FIXED v4
 -- ============================================================================
+
+DROP MATERIALIZED VIEW IF EXISTS mv_exposure_score_industry CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS mv_exposure_score_state CASCADE;
 
 -- ============================================================================
 -- PART A: EXPOSURE SCORE BY INDUSTRY
@@ -12,9 +15,10 @@ WITH base_metrics AS (
     e.industry,
     a.emp_id,
     COUNT(*) AS app_count_by_employer,
-    SUM(a.wage_offer) AS wage_mass_by_employer
+    SUM(COALESCE(a.wage_offer, 0)) AS wage_mass_by_employer
   FROM applications a
   JOIN employers e ON a.emp_id = e.emp_id
+  WHERE a.wage_offer IS NOT NULL AND a.wage_offer > 0
   GROUP BY e.industry, a.emp_id
 ),
 industry_totals AS (
@@ -32,7 +36,7 @@ industry_aggregates AS (
     COUNT(DISTINCT bm.emp_id) AS employer_count,
     SUM(
       POWER(
-        bm.app_count_by_employer::numeric / it.total_apps_in_industry,
+        bm.app_count_by_employer::numeric / NULLIF(it.total_apps_in_industry, 0),
         2
       )
     ) AS hhi_concentration
@@ -54,37 +58,43 @@ scored_industries AS (
     ia.employer_count,
     ROUND(ia.hhi_concentration::numeric, 4) AS hhi_concentration,
     ROUND(
-      100.0 * ia.total_applications / gt.global_app_count,
+      100.0 * ia.total_applications / NULLIF(gt.global_app_count, 0),
       2
     ) AS volume_share_pct,
     ROUND(
-      100.0 * ia.total_wage_mass / gt.global_wage_mass,
+      100.0 * ia.total_wage_mass / NULLIF(gt.global_wage_mass, 0),
       2
     ) AS wage_mass_share_pct,
-    ROUND(100.0 * ia.hhi_concentration::numeric, 2) AS hhi_score
+    ROUND(
+      LEAST(ia.hhi_concentration::numeric, 0.25) * 100,
+      2
+    ) AS hhi_score
   FROM industry_aggregates ia
   CROSS JOIN global_totals gt
+  WHERE ia.total_applications >= 100
 )
 SELECT
-  industry,
-  total_applications,
-  ROUND(total_wage_mass::numeric, 2) AS total_wage_mass,
-  employer_count,
-  hhi_concentration,
-  volume_share_pct,
-  wage_mass_share_pct,
-  hhi_score,
+  si.industry,
+  COALESCE(n.industry_name, si.industry) AS industry_name,
+  si.total_applications,
+  ROUND(si.total_wage_mass::numeric, 2) AS total_wage_mass,
+  si.employer_count,
+  si.hhi_concentration,
+  si.volume_share_pct,
+  si.wage_mass_share_pct,
+  si.hhi_score,
   ROUND(
-    (0.4 * volume_share_pct) + 
-    (0.3 * wage_mass_share_pct) + 
-    (0.3 * hhi_score),
+    (0.5 * si.volume_share_pct) + 
+    (0.4 * si.wage_mass_share_pct) + 
+    (0.1 * si.hhi_score),
     2
   ) AS exposure_score,
   ROUND(
-    (total_applications * 100000)::numeric / 1000000,
+    (si.total_applications * 100000)::numeric / 1000000,
     2
   ) AS estimated_fee_shock_millions
-FROM scored_industries
+FROM scored_industries si
+LEFT JOIN naics_lookup n ON si.industry = n.naics_code
 ORDER BY exposure_score DESC;
 
 -- ============================================================================
@@ -97,9 +107,10 @@ WITH base_metrics AS (
     l.worksite_state,
     a.emp_id,
     COUNT(*) AS app_count_by_employer,
-    SUM(a.wage_offer) AS wage_mass_by_employer
+    SUM(COALESCE(a.wage_offer, 0)) AS wage_mass_by_employer
   FROM applications a
   JOIN worksite_locations l ON a.site_id = l.site_id
+  WHERE a.wage_offer IS NOT NULL AND a.wage_offer > 0
   GROUP BY l.worksite_state, a.emp_id
 ),
 state_totals AS (
@@ -117,7 +128,7 @@ state_aggregates AS (
     COUNT(DISTINCT bm.emp_id) AS employer_count,
     SUM(
       POWER(
-        bm.app_count_by_employer::numeric / st.total_apps_in_state,
+        bm.app_count_by_employer::numeric / NULLIF(st.total_apps_in_state, 0),
         2
       )
     ) AS hhi_concentration
@@ -139,14 +150,17 @@ scored_states AS (
     sa.employer_count,
     ROUND(sa.hhi_concentration::numeric, 4) AS hhi_concentration,
     ROUND(
-      100.0 * sa.total_applications / gt.global_app_count,
+      100.0 * sa.total_applications / NULLIF(gt.global_app_count, 0),
       2
     ) AS volume_share_pct,
     ROUND(
-      100.0 * sa.total_wage_mass / gt.global_wage_mass,
+      100.0 * sa.total_wage_mass / NULLIF(gt.global_wage_mass, 0),
       2
     ) AS wage_mass_share_pct,
-    ROUND(100.0 * sa.hhi_concentration::numeric, 2) AS hhi_score
+    ROUND(
+      LEAST(sa.hhi_concentration::numeric, 0.25) * 100,
+      2
+    ) AS hhi_score
   FROM state_aggregates sa
   CROSS JOIN global_totals gt
 )
@@ -160,9 +174,9 @@ SELECT
   wage_mass_share_pct,
   hhi_score,
   ROUND(
-    (0.4 * volume_share_pct) + 
-    (0.3 * wage_mass_share_pct) + 
-    (0.3 * hhi_score),
+    (0.5 * volume_share_pct) + 
+    (0.4 * wage_mass_share_pct) + 
+    (0.1 * hhi_score),
     2
   ) AS exposure_score,
   ROUND(
@@ -198,14 +212,20 @@ FROM mv_exposure_score_industry;
 SELECT 'State view created with ' || COUNT(*) || ' rows' AS status
 FROM mv_exposure_score_state;
 
--- Show top 5 industries
-SELECT industry, exposure_score, total_applications, estimated_fee_shock_millions
+-- Show top 10 industries
+SELECT industry, exposure_score, volume_share_pct, wage_mass_share_pct, hhi_score, total_applications
 FROM mv_exposure_score_industry
 ORDER BY exposure_score DESC
-LIMIT 5;
+LIMIT 10;
 
--- Show top 5 states
-SELECT worksite_state, exposure_score, total_applications, estimated_fee_shock_millions
+-- Show bottom 10 industries
+SELECT industry, exposure_score, volume_share_pct, wage_mass_share_pct, hhi_score, total_applications
+FROM mv_exposure_score_industry
+ORDER BY exposure_score ASC
+LIMIT 10;
+
+-- Show top 10 states
+SELECT worksite_state, exposure_score, volume_share_pct, wage_mass_share_pct, hhi_score, total_applications
 FROM mv_exposure_score_state
 ORDER BY exposure_score DESC
-LIMIT 5;
+LIMIT 10;
