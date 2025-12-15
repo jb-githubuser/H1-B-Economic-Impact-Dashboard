@@ -35,6 +35,9 @@ H1-B-Economic-Impact-Dashboard/
 ├── frontend/                  # Next.js application
 │   ├── app/
 │   │   ├── api/              # API routes for data fetching
+│   │   │   ├── covid-trends/route.ts
+│   │   │   ├── industry-exposure/route.ts
+│   │   │   ├── state-exposure/route.ts
 │   │   │   ├── industry-metrics/route.ts
 │   │   │   └── state-metrics/route.ts
 │   │   ├── page.tsx          # Main dashboard page
@@ -50,6 +53,8 @@ H1-B-Economic-Impact-Dashboard/
 │   └── package.json
 ├── database/                 # Database setup & ETL
 │   ├── schema.sql           # PostgreSQL schema definition
+│   ├── COVID_feature.sql    # Feature 2 query
+│   ├── company_exposure.sql # Feature 3 query
 │   ├── load_data_fast.py    # ETL script for H-1B data
 │   ├── load_naics_lookup.py # NAICS industry code loader
 │   └── GCP_SETUP_GUIDE.md   # Cloud SQL setup instructions
