@@ -42,15 +42,42 @@ psql -h $DB_HOST -U postgres -d h1b_economic_impact -f schema.sql
 
 ### 4. Load Data
 
+**Simple one-step method to load all data (2009-2024):**
+
 ```bash
-# Load NAICS lookup table
-python load_naics_lookup.py
+python3 load_remaining_data.py
+```
 
-# Load H-1B data (2022-2024 for quick start)
-python load_data.py --years 2022 2023 2024
+This script will:
+- Automatically load all H-1B data from 2009-2024
+- Skip years already in the database (safe to re-run)
+- Handle different CSV formats across years
+- Run in the background - you can monitor progress by checking record counts
 
-# Or load all years
-python load_data.py --all
+**To monitor progress:**
+```bash
+# Check how many records have been loaded
+python3 -c "
+import psycopg2
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+load_dotenv(Path('.env'))
+conn = psycopg2.connect(
+    host=os.getenv('DB_HOST'),
+    port=os.getenv('DB_PORT'),
+    database=os.getenv('DB_NAME'),
+    user=os.getenv('DB_USER'),
+    password=os.getenv('DB_PASSWORD')
+)
+cur = conn.cursor()
+cur.execute('SELECT fiscal_year, COUNT(*) FROM applications GROUP BY fiscal_year ORDER BY fiscal_year')
+for year, count in cur.fetchall():
+    print(f'{year}: {count:,} records')
+cur.close()
+conn.close()
+"
 ```
 
 ### 5. Verify
@@ -106,13 +133,10 @@ DATABASE_URL=postgresql://postgres:password@host:5432/h1b_economic_impact
 
 ## Data Loading Performance
 
-**2022-2024 data (~1.6M records):**
-- Load time: ~5-10 minutes
-- Storage: ~500MB
-
-**All years (2009-2024, ~7.5M records):**
-- Load time: ~30-45 minutes
-- Storage: ~2GB
+**All years (2009-2024, ~5.9M records):**
+- Load time: ~45-60 minutes
+- Storage: ~1.5GB
+- Final count: 5,873,631 records across all years
 
 ## Troubleshooting
 
