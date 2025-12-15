@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPool } from '@/lib/db';
 
 export async function GET(req: NextRequest) { 
+  const pool = getPool();
+  
   const { searchParams } = new URL(req.url);
 
   const industry = searchParams.get("industry");
