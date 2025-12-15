@@ -53,7 +53,7 @@ export default function ExposureStateHeatmap({ data }: { data: ExposureStateRow[
             <>
               <path d="M 0,0 L 20,10 L 15,25 L -5,20 Z" fill={getColor(stateMap.get('AK')?.exposure_score)} stroke="#fff" strokeWidth="1" />
               <text x="7" y="15" className="text-xs fill-white" style={{fontSize: '8px'}}>AK</text>
-              <title>AK: {stateMap.get('AK')?.exposure_score.toFixed(1)}</title>
+              <title>AK: {Number(stateMap.get('AK')?.exposure_score).toFixed(1)}</title>
             </>
           )}
         </g>
@@ -64,7 +64,7 @@ export default function ExposureStateHeatmap({ data }: { data: ExposureStateRow[
             <>
               <circle cx="0" cy="0" r="8" fill={getColor(stateMap.get('HI')?.exposure_score)} stroke="#fff" strokeWidth="1" />
               <text x="0" y="2" textAnchor="middle" className="text-xs fill-white" style={{fontSize: '7px'}}>HI</text>
-              <title>HI: {stateMap.get('HI')?.exposure_score.toFixed(1)}</title>
+              <title>HI: {Number(stateMap.get('HI')?.exposure_score).toFixed(1)}</title>
             </>
           )}
         </g>
