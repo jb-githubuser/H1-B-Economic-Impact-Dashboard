@@ -85,9 +85,19 @@ export default function Dashboard() {
           onYearChange={setSelectedYear}
           onIndustryChange={setSelectedIndustry}
           onStateChange={setSelectedState}
-          industries={Array.from(new Map(industryData.filter(d => d.industry && d.industry_name).map(d => [d.industry, d.industry_name])
-          ).entries()).map(([value, label]) => ({ value, label }))}
-
+          industries={Array.from(
+          new Map(
+            industryData
+              .filter(
+                d =>
+                  typeof d.industry_name === 'string' &&
+                  d.industry_name.trim() !== '' &&
+                  d.industry_name !== d.industry
+              )
+              .map(d => [d.industry_name, d.industry_name])
+          ).entries()
+        ).map(([value, label]) => ({ value, label }))}
+          
           states={Array.from(new Set(stateData.map(d => d.worksite_state))).filter(Boolean)}
         />
 
