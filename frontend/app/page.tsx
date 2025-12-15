@@ -71,13 +71,15 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/covid-trends');
       if (!res.ok) throw new Error('Failed to fetch COVID trends');
-
-      const data = await res.json();
-      setCovidData(data);
+      const json = await res.json();
+      
+        setCovidData(json.data ?? []);
     } catch (err) {
       console.error(err);
+      setCovidData([]);
     }
   };
+
 
   // ---------------------------
   // Effects
