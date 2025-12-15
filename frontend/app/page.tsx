@@ -16,7 +16,9 @@ export default function Dashboard() {
   // ---------------------------
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
-  const [covidData, setCovidData] = useState<any[]>([]);
+  const [covidIndustryData, setCovidIndustryData] = useState<any[]>([]);
+  const [covidStateData, setCovidStateData] = useState<any[]>([]);
+
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,24 +70,23 @@ export default function Dashboard() {
   // ---------------------------
   const fetchCovidData = async () => {
     try {
-      const res = await fetch('/api/covid-trends');
-      if (!res.ok) throw new Error('Failed to fetch COVID trends');
+      const [industryRes, stateRes] = await Promise.all([
+        fetch('/api/covid-trends'),
+        fetch('/api/covid-state-impact'),
+      ]);
   
-      const json = await res.json();
+      const industryJson = await industryRes.json();
+      const stateJson = await stateRes.json();
   
-      if (Array.isArray(json)) {
-        setCovidData(json);
-      } else if (Array.isArray(json.data)) {
-        setCovidData(json.data);
-      } else {
-        console.error('Unexpected covid-trends response:', json);
-        setCovidData([]);
-      }
+      setCovidIndustryData(Array.isArray(industryJson) ? industryJson : industryJson.data);
+      setCovidStateData(Array.isArray(stateJson) ? stateJson : stateJson.data);
     } catch (err) {
       console.error(err);
-      setCovidData([]);
+      setCovidIndustryData([]);
+      setCovidStateData([]);
     }
   };
+
 
 
 
@@ -200,8 +201,8 @@ export default function Dashboard() {
         {/* COVID Tab */}
         {!loading && activeTab === 'covid' && (
           <div className="space-y-10">
-            <CovidImpactBarCharts data={covidData} />
-            <CovidImpactStateBarCharts data={covidData} />
+            <CovidImpactBarCharts data={covidIndustryData} />
+            <CovidImpactStateBarCharts data={covidStateData} />
           </div>
         )}
       </main>
