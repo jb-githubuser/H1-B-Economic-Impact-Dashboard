@@ -8,14 +8,18 @@ type Row = {
 };
 
 export default function CovidImpactStateBarCharts({ data }: { data: Row[] }) {
-  const chartData = (data ?? [])
-    .filter(r => r.worksite_state && r.pct_change_2019_2020 !== null)
-    .map(r => ({
-      state: r.worksite_state as string,
-      change: Number(r.pct_change_2019_2020),
+  const chartData = data
+    .filter(
+      d =>
+        d.worksite_state &&
+        d.pct_change_2019_2020 !== null
+    )
+    .map(d => ({
+      state: d.worksite_state,
+      change: Number(d.pct_change_2019_2020),
     }))
     .sort((a, b) => a.change - b.change)
-    .slice(0, 15);
+    .slice(0, 10);
 
   if (chartData.length === 0) {
     return (
