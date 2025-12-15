@@ -7,7 +7,7 @@ import IndustryCharts from '@/components/IndustryCharts';
 import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
-
+import CovidImpactStateBarCharts from '@/components/CovidImpactStateBarCharts';
 import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
 
 export default function Dashboard() {
@@ -201,6 +201,7 @@ export default function Dashboard() {
         {!loading && activeTab === 'covid' && (
           <div className="space-y-10">
             <CovidImpactBarCharts data={covidData} />
+            <CovidImpactStateBarCharts data={covidData} />
           </div>
         )}
       </main>
