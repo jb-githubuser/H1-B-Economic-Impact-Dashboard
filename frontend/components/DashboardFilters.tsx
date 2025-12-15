@@ -58,9 +58,11 @@ export default function DashboardFilters({
             className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Industries</option>
-            {industries.sort().map((industry) => (
-              <option key={industry} value={industry}>
-                {industry}
+            {industries
+            .sort((a, b) => a.label.localeCompare(b.label))
+            .map((industry) => (
+              <option key={industry.value} value={industry.value}>
+                {industry.label}
               </option>
             ))}
           </select>
