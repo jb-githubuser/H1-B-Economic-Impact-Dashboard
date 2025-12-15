@@ -9,7 +9,6 @@ import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
 
 import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
-import CovidRecoveryChart from '@/components/CovidRecoveryChart';
 
 export default function Dashboard() {
   // ---------------------------
@@ -202,7 +201,6 @@ export default function Dashboard() {
         {!loading && activeTab === 'covid' && (
           <div className="space-y-10">
             <CovidImpactBarCharts data={covidData} />
-            <CovidRecoveryChart data={covidData} />
           </div>
         )}
       </main>
