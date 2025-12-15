@@ -3,24 +3,20 @@
 import { useEffect, useState } from 'react';
 import { IndustryMetric, StateMetric, ApiResponse } from '@/lib/types';
 
-// ---------- EXISTING OVERVIEW COMPONENTS ----------
 import IndustryCharts from '@/components/IndustryCharts';
 import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
-
-// ---------- NEW COVID COMPONENTS ----------
 import CovidIndustryChart from '@/components/CovidIndustryChart';
 import CovidStateChart from '@/components/CovidStateChart';
 
 export default function Dashboard() {
   // ---------------------------
-  // STATE (UNCHANGED)
+  // State
   // ---------------------------
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
-  const [covidIndustryData, setCovidIndustryData] = useState<any[]>([]);
-  const [covidStateData, setCovidStateData] = useState<any[]>([]);
+  const [covidData, setCovidData] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +27,7 @@ export default function Dashboard() {
   const [selectedState, setSelectedState] = useState<string>('');
 
   // ---------------------------
-  // FETCH OVERVIEW DATA (UNCHANGED)
+  // Fetch overview data (filters apply)
   // ---------------------------
   const fetchOverviewData = async () => {
     setLoading(true);
@@ -55,12 +51,14 @@ export default function Dashboard() {
         throw new Error('Failed to fetch overview data');
       }
 
-      const industryJson: ApiResponse<IndustryMetric[]> = await industryRes.json();
-      const stateJson: ApiResponse<StateMetric[]> = await stateRes.json();
+      const industryJson: ApiResponse<IndustryMetric[]> =
+        await industryRes.json();
+      const stateJson: ApiResponse<StateMetric[]> =
+        await stateRes.json();
 
       setIndustryData(industryJson.data || []);
       setStateData(stateJson.data || []);
-    } catch {
+    } catch (err) {
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -68,24 +66,31 @@ export default function Dashboard() {
   };
 
   // ---------------------------
-  // FETCH COVID DATA (SEPARATE, SIMPLE)
+  // Fetch COVID data (ONCE)
   // ---------------------------
   const fetchCovidData = async () => {
     try {
-      const [industryRes, stateRes] = await Promise.all([
-        fetch('/api/covid-industry-impact'),
-        fetch('/api/covid-state-impact'),
-      ]);
+      const res = await fetch('/api/covid-trends');
+      if (!res.ok) throw new Error('Failed to fetch COVID trends');
 
-      setCovidIndustryData(await industryRes.json());
-      setCovidStateData(await stateRes.json());
+      const json = await res.json();
+
+      if (Array.isArray(json)) {
+        setCovidData(json);
+      } else if (Array.isArray(json.data)) {
+        setCovidData(json.data);
+      } else {
+        console.error('Unexpected covid-trends response:', json);
+        setCovidData([]);
+      }
     } catch (err) {
       console.error(err);
+      setCovidData([]);
     }
   };
 
   // ---------------------------
-  // EFFECTS
+  // Effects
   // ---------------------------
   useEffect(() => {
     fetchOverviewData();
@@ -96,15 +101,20 @@ export default function Dashboard() {
   }, []);
 
   // ---------------------------
-  // RENDER
+  // Render
   // ---------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-slate-900">
             H1-B Economic Impact Dashboard
           </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Analyzing the economic impact of H1-B visa holders on U.S. industries
+            and states
+          </p>
         </div>
       </header>
 
@@ -114,37 +124,71 @@ export default function Dashboard() {
           <nav className="flex space-x-6">
             <button
               onClick={() => setActiveTab('overview')}
-              className={activeTab === 'overview' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'pb-2 text-slate-500'}
+              className={`pb-2 font-medium ${
+                activeTab === 'overview'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-slate-500'
+              }`}
             >
               Overview
             </button>
 
             <button
               onClick={() => setActiveTab('covid')}
-              className={activeTab === 'covid' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'pb-2 text-slate-500'}
+              className={`pb-2 font-medium ${
+                activeTab === 'covid'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-slate-500'
+              }`}
             >
               COVID Trends
             </button>
           </nav>
         </div>
 
-        {/* ---------------- OVERVIEW TAB (UNTOUCHED) ---------------- */}
+        {/* Filters (Overview only) */}
+        {activeTab === 'overview' && (
+          <DashboardFilters
+            selectedYear={selectedYear}
+            selectedIndustry={selectedIndustry}
+            selectedState={selectedState}
+            onYearChange={setSelectedYear}
+            onIndustryChange={setSelectedIndustry}
+            onStateChange={setSelectedState}
+            industries={Array.from(
+              new Map(
+                industryData
+                  .filter(
+                    d =>
+                      typeof d.industry_name === 'string' &&
+                      d.industry_name.trim() !== '' &&
+                      d.industry_name !== d.industry
+                  )
+                  .map(d => [d.industry_name, d.industry_name])
+              ).entries()
+            ).map(([value, label]) => ({ value, label }))}
+            states={Array.from(
+              new Set(stateData.map(d => d.worksite_state))
+            ).filter(Boolean)}
+          />
+        )}
+
+        {/* Loading / Error */}
+        {loading && (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full" />
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
+        {/* Overview Tab */}
         {!loading && !error && activeTab === 'overview' && (
           <>
-            <DashboardFilters
-              selectedYear={selectedYear}
-              selectedIndustry={selectedIndustry}
-              selectedState={selectedState}
-              onYearChange={setSelectedYear}
-              onIndustryChange={setSelectedIndustry}
-              onStateChange={setSelectedState}
-              industries={industryData.map(d => ({
-                value: d.industry_name,
-                label: d.industry_name,
-              }))}
-              states={stateData.map(d => d.worksite_state)}
-            />
-
             <div className="mb-8">
               <StateHeatmap data={stateData} />
             </div>
@@ -156,11 +200,11 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* ---------------- COVID TAB (ONLY NEW CODE) ---------------- */}
-        {activeTab === 'covid' && (
-          <div className="space-y-12">
-            <CovidIndustryChart data={covidIndustryData} />
-            <CovidStateChart data={covidStateData} />
+        {/* COVID Tab */}
+        {!loading && activeTab === 'covid' && (
+          <div className="space-y-10">
+            <CovidIndustryChart data={covidData} />
+            <CovidStateChart data={covidData} />
           </div>
         )}
       </main>
