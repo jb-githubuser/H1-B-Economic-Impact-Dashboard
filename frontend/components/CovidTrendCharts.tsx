@@ -78,7 +78,7 @@ export default function CovidTrendCharts() {
             <tr key={`${row.industry}-${i}`} className="border-t">
               <td className="p-2">{row.industry}</td>
               <td className="p-2 text-right">
-                {row.app_count_change_2019_to_2020_pct?.toFixed(1)}%
+                {Number(row.app_count_change_2019_to_2020_pct).toFixed(1)}%
               </td>
             </tr>
           ))}
