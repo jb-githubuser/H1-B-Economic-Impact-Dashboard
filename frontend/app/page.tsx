@@ -8,7 +8,7 @@ import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
 import CovidTrendCharts from '@/components/CovidTrendCharts';
 import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
-import CovidRecoveryLineCharts from '@/components/CovidRecoveryLineCharts';
+import CovidRecoveryChart from '@/components/CovidRecoveryChart';
 
 export default function Dashboard() {
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
@@ -175,7 +175,7 @@ export default function Dashboard() {
         {!loading && !error && activeTab === 'covid' && (
           <div className="space-y-8">
             <CovidImpactBarCharts data={covidData} />
-            <CovidRecoveryLineCharts data={covidData} />
+            <CovidRecoveryChart data={covidData} />
           </div>
         )}
 
