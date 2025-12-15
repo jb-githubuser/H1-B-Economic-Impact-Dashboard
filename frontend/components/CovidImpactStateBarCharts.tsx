@@ -1,3 +1,5 @@
+console.log('STATE CHART RAW DATA:', data);
+
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
