@@ -7,8 +7,8 @@ import StateCharts from '@/components/StateCharts';
 import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
 import CovidTrendCharts from '@/components/CovidTrendCharts';
-import CovidImpactBarChart from '@/components/CovidImpactBarChart';
-import CovidRecoveryLineChart from '@/components/CovidRecoveryLineChart';
+import CovidImpactBarCharts from '@/components/CovidImpactBarCharts';
+import CovidRecoveryLineCharts from '@/components/CovidRecoveryLineCharts';
 
 export default function Dashboard() {
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
