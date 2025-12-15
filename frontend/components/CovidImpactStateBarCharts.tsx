@@ -1,38 +1,21 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface CovidRow {
-  worksite_state: string;
-  pct_change_2019_2020: string | null;
-}
+type Row = {
+  worksite_state: string | null;
+  pct_change_2019_2020: number | string | null;
+};
 
-export default function CovidImpactStateBarCharts({
-  data,
-}: {
-  data: CovidRow[];
-}) {
-  const chartData = data
-    .filter(
-      d =>
-        d.worksite_state &&
-        d.pct_change_2019_2020 !== null &&
-        !isNaN(Number(d.pct_change_2019_2020))
-    )
-    .map(d => ({
-      state: d.worksite_state,
-      change: Number(d.pct_change_2019_2020),
+export default function CovidImpactStateBarCharts({ data }: { data: Row[] }) {
+  const chartData = (data ?? [])
+    .filter(r => r.worksite_state && r.pct_change_2019_2020 !== null)
+    .map(r => ({
+      state: r.worksite_state as string,
+      change: Number(r.pct_change_2019_2020),
     }))
     .sort((a, b) => a.change - b.change)
-    .slice(0, 10);
+    .slice(0, 15);
 
   if (chartData.length === 0) {
     return (
@@ -44,24 +27,16 @@ export default function CovidImpactStateBarCharts({
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-2">
-        States Most Impacted by COVID
-      </h3>
-      <p className="text-sm text-slate-500 mb-4">
-        % change in H-1B applications (2019 → 2020)
-      </p>
+      <h3 className="text-lg font-semibold mb-2">COVID Impact by State</h3>
+      <p className="text-sm text-slate-500 mb-4">% change in H-1B applications (2019 → 2020)</p>
 
-      <div className="h-[380px]">
+      <div className="h-[420px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical">
-            <XAxis type="number" tickFormatter={v => `${v}%`} />
-            <YAxis type="category" dataKey="state" width={80} />
-            <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-            <Bar dataKey="change">
-              {chartData.map((_, i) => (
-                <Cell key={i} fill="#dc2626" />
-              ))}
-            </Bar>
+            <XAxis type="number" tickFormatter={(v) => `${v}%`} />
+            <YAxis type="category" dataKey="state" width={70} />
+            <Tooltip formatter={(v: any) => `${Number(v).toFixed(2)}%`} />
+            <Bar dataKey="change" />
           </BarChart>
         </ResponsiveContainer>
       </div>
