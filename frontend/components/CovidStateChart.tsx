@@ -1,5 +1,4 @@
 'use client';
-
 import {
   BarChart,
   Bar,
@@ -9,22 +8,34 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-interface CovidStateRow {
-  worksite_state: string;
-  pct_change_2019_2020: number | string;
+interface CovidRow {
+  worksite_state: string | null;
+  pct_change_2019_2020: number | null;
 }
 
-export default function CovidStateChart({
-  data,
-}: {
-  data: CovidStateRow[];
-}) {
-  const chartData = data
-    .filter(d => d.worksite_state && d.pct_change_2019_2020 !== null)
-    .map(d => ({
-      worksite_state: d.worksite_state,
-      pct_change_2019_2020: Number(d.pct_change_2019_2020),
-    }))
+export default function CovidStateChart({ data }: { data: CovidRow[] }) {
+  const stateGroups = new Map<string, number[]>();
+  
+  data.forEach(d => {
+    if (d.worksite_state && d.pct_change_2019_2020 !== null) {
+      const state = d.worksite_state;
+      const pct = Number(d.pct_change_2019_2020);
+      if (!stateGroups.has(state)) {
+        stateGroups.set(state, []);
+      }
+      stateGroups.get(state)!.push(pct);
+    }
+  });
+
+  const chartData = Array.from(stateGroups.entries())
+    .map(([state, pcts]) => {
+      const sum = pcts.reduce((a, b) => a + b, 0);
+      const avg = sum / pcts.length;
+      return {
+        worksite_state: state,
+        pct_change_2019_2020: avg,
+      };
+    })
     .sort((a, b) => a.pct_change_2019_2020 - b.pct_change_2019_2020)
     .slice(0, 15);
 
@@ -44,7 +55,6 @@ export default function CovidStateChart({
       <p className="text-sm text-slate-500 mb-4">
         % change in H-1B applications (2019 → 2020)
       </p>
-
       <div className="h-[420px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical">
