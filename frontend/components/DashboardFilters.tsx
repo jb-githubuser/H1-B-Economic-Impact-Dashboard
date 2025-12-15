@@ -9,7 +9,7 @@ interface DashboardFiltersProps {
   onYearChange: (year: number) => void;
   onIndustryChange: (industry: string) => void;
   onStateChange: (state: string) => void;
-  industries: string[];
+  industries: { value: string; label: string }[];
   states: string[];
 }
 
@@ -61,7 +61,7 @@ export default function DashboardFilters({
             {industries
             .sort((a, b) => a.label.localeCompare(b.label))
             .map((industry) => (
-              <option key={industry.value} value={industry.value}>
+              <option key={industry.label} value={industry.label}>
                 {industry.label}
               </option>
             ))}
