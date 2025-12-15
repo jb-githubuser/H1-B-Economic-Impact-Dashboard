@@ -10,8 +10,8 @@ import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
 
 // ---------- NEW COVID COMPONENTS ----------
-import CovidIndustryImpactChart from '@/components/CovidIndustryImpactChart';
-import CovidStateImpactChart from '@/components/CovidStateImpactChart';
+import CovidIndustryChart from '@/components/CovidIndustryChart';
+import CovidStateChart from '@/components/CovidStateChart';
 
 export default function Dashboard() {
   // ---------------------------
@@ -159,8 +159,8 @@ export default function Dashboard() {
         {/* ---------------- COVID TAB (ONLY NEW CODE) ---------------- */}
         {activeTab === 'covid' && (
           <div className="space-y-12">
-            <CovidIndustryImpactChart data={covidIndustryData} />
-            <CovidStateImpactChart data={covidStateData} />
+            <CovidIndustryChart data={covidIndustryData} />
+            <CovidStateChart data={covidStateData} />
           </div>
         )}
       </main>
