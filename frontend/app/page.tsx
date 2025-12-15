@@ -9,26 +9,26 @@ import StateHeatmap from '@/components/StateHeatmap';
 import DashboardFilters from '@/components/DashboardFilters';
 import CovidIndustryChart from '@/components/CovidIndustryChart';
 import CovidStateChart from '@/components/CovidStateChart';
+import ExposureScatterPlot from '@/components/ExposureScatterPlot';
+import ExposureTopIndustries from '@/components/ExposureTopIndustries';
+import ExposureStateHeatmap from '@/components/ExposureStateHeatmap';
+import ExposureMetricsGrid from '@/components/ExposureMetricsGrid';
 
 export default function Dashboard() {
-  // ---------------------------
-  // State
-  // ---------------------------
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
   const [stateData, setStateData] = useState<StateMetric[]>([]);
   const [covidData, setCovidData] = useState<any[]>([]);
+  const [exposureIndustryData, setExposureIndustryData] = useState<any[]>([]);
+  const [exposureStateData, setExposureStateData] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'covid'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'covid' | 'exposure'>('overview');
 
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
   const [selectedState, setSelectedState] = useState<string>('');
 
-  // ---------------------------
-  // Fetch overview data (filters apply)
-  // ---------------------------
   const fetchOverviewData = async () => {
     setLoading(true);
     setError(null);
@@ -51,10 +51,8 @@ export default function Dashboard() {
         throw new Error('Failed to fetch overview data');
       }
 
-      const industryJson: ApiResponse<IndustryMetric[]> =
-        await industryRes.json();
-      const stateJson: ApiResponse<StateMetric[]> =
-        await stateRes.json();
+      const industryJson: ApiResponse<IndustryMetric[]> = await industryRes.json();
+      const stateJson: ApiResponse<StateMetric[]> = await stateRes.json();
 
       setIndustryData(industryJson.data || []);
       setStateData(stateJson.data || []);
@@ -65,9 +63,6 @@ export default function Dashboard() {
     }
   };
 
-  // ---------------------------
-  // Fetch COVID data (ONCE)
-  // ---------------------------
   const fetchCovidData = async () => {
     try {
       const res = await fetch('/api/covid-trends');
@@ -89,37 +84,44 @@ export default function Dashboard() {
     }
   };
 
-  // ---------------------------
-  // Effects
-  // ---------------------------
+  const fetchExposureData = async () => {
+    try {
+      const res = await fetch('/api/exposure-scores');
+      if (!res.ok) throw new Error('Failed to fetch exposure scores');
+
+      const json = await res.json();
+      setExposureIndustryData(json.industries || []);
+      setExposureStateData(json.states || []);
+    } catch (err) {
+      console.error(err);
+      setExposureIndustryData([]);
+      setExposureStateData([]);
+    }
+  };
+
   useEffect(() => {
     fetchOverviewData();
   }, [selectedYear, selectedIndustry, selectedState]);
 
   useEffect(() => {
     fetchCovidData();
+    fetchExposureData();
   }, []);
 
-  // ---------------------------
-  // Render
-  // ---------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-slate-900">
             H1-B Economic Impact Dashboard
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            Analyzing the economic impact of H1-B visa holders on U.S. industries
-            and states
+            Analyzing the economic impact of H1-B visa holders on U.S. industries and states
           </p>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Tabs */}
         <div className="mb-6 border-b border-slate-200">
           <nav className="flex space-x-6">
             <button
@@ -143,10 +145,20 @@ export default function Dashboard() {
             >
               COVID Trends
             </button>
+
+            <button
+              onClick={() => setActiveTab('exposure')}
+              className={`pb-2 font-medium ${
+                activeTab === 'exposure'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-slate-500'
+              }`}
+            >
+              Policy Exposure
+            </button>
           </nav>
         </div>
 
-        {/* Filters (Overview only) */}
         {activeTab === 'overview' && (
           <DashboardFilters
             selectedYear={selectedYear}
@@ -173,7 +185,6 @@ export default function Dashboard() {
           />
         )}
 
-        {/* Loading / Error */}
         {loading && (
           <div className="flex justify-center py-12">
             <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full" />
@@ -186,7 +197,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Overview Tab */}
         {!loading && !error && activeTab === 'overview' && (
           <>
             <div className="mb-8">
@@ -200,11 +210,26 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* COVID Tab */}
         {!loading && activeTab === 'covid' && (
           <div className="space-y-10">
             <CovidIndustryChart data={covidData} />
             <CovidStateChart data={covidData} />
+          </div>
+        )}
+
+        {!loading && activeTab === 'exposure' && (
+          <div className="space-y-10">
+            <ExposureMetricsGrid 
+              industryData={exposureIndustryData}
+              stateData={exposureStateData}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ExposureTopIndustries data={exposureIndustryData} />
+              <ExposureScatterPlot data={exposureIndustryData} />
+            </div>
+
+            <ExposureStateHeatmap data={exposureStateData} />
           </div>
         )}
       </main>
