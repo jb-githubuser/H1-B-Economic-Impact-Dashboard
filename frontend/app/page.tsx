@@ -146,39 +146,35 @@ export default function Dashboard() {
         )}
 
         {/* Dashboard Content */}
-        {!loading && !error && (
+        {!loading && !error && activeTab === 'overview' && (
           <>
-            {activeTab === 'overview' && (
-              <>
-                {/* Geographic Heatmap - Full Width */}
-                <div className="mb-8">
-                  <StateHeatmap data={stateData} />
-                </div>
+            <div className="mb-8">
+              <StateHeatmap data={stateData} />
+            </div>
         
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Industry Section */}
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-semibold text-slate-800">
-                      Industry Analysis
-                    </h2>
-                    <IndustryCharts data={industryData} />
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-slate-800">
+                  Industry Analysis
+                </h2>
+                <IndustryCharts data={industryData} />
+              </div>
         
-                  {/* State Section */}
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-semibold text-slate-800">
-                      State Analysis
-                    </h2>
-                    <StateCharts data={stateData} />
-                  </div>
-                </div>
-              </>
-            )}
-        
-            {activeTab === 'covid' && (
-              <CovidTrendCharts />
-            )}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-slate-800">
+                  State Analysis
+                </h2>
+                <StateCharts data={stateData} />
+              </div>
+            </div>
           </>
+        )}
+
+        {!loading && !error && activeTab === 'covid' && (
+          <div className="space-y-8">
+            <CovidImpactBarChart data={covidData} />
+            <CovidRecoveryLineChart data={covidData} />
+          </div>
         )}
 
 
