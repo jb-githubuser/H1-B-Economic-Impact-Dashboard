@@ -8,13 +8,20 @@ A full-stack web application that analyzes the economic impact of H-1B visa hold
 
 ## 📊 Project Overview
 
-This dashboard provides comprehensive analytics on H-1B visa applications, including:
-- **Geographic Heatmap**: Interactive US map showing H-1B application distribution by state
-- **Industry Analysis**: Top industries by application volume, average wages, and employer counts
-- **State Analysis**: Regional economic impact metrics and workforce concentration
-- **Interactive Filters**: Dynamic filtering by year, industry, and state
+This project is an interactive analytics dashboard for exploring U.S. H-1B Labor Condition Applications (LCAs) using the U.S. Department of Labor OFLC disclosure/performance dataset. It helps users understand where H-1B filings cluster across **states, industries, and employers**, and how concentration patterns may affect vulnerability to policy shocks.
 
-**Key Research Question**: *Where is critical H-1B expertise concentrated, and how would shifts in U.S. immigration policy affect regional and industry-specific economies?*
+The dashboard includes:
+
+- **Geographic Heatmaps**: Interactive U.S. maps showing H-1B application volume and policy exposure by state (hover tooltips + legends)
+- **Employer Analysis**: Top employers by certified application volume to surface sponsorship concentration
+- **Industry Analysis**: Top industries by application volume and wage patterns (average vs. median), plus long-tail industry rankings
+- **State Analysis**: State-level tables and charts with applications, distinct employers, average wage, and total wage mass
+- **COVID Trends**: Industry and state % change in applications from 2019 → 2020 to highlight pandemic-era shifts
+- **Policy Exposure Modeling**: A stress-test view that estimates cost burden under a **$100,000 fee per certified H-1B application**, and ranks industries/states using an exposure score combining volume, wage mass, and employer concentration
+- **Interactive Filters**: Global filtering by year, industry, and state across all tabs
+
+**Key Research Question**: *Where is H-1B expertise concentrated, and which states/industries would be most exposed under a large per-application cost shock (modeled as a $100,000 fee per certified application)?*
+
 
 ---
 
@@ -24,7 +31,7 @@ This dashboard provides comprehensive analytics on H-1B visa applications, inclu
 - **Backend**: Next.js API Routes (serverless functions)
 - **Database**: PostgreSQL 16 on Google Cloud SQL
 - **Visualization**: Recharts, react-simple-maps
-- **Data**: 1.6M+ H-1B application records (2022-2024)
+- **Data**: ~6M H-1B application records (2009-2024)
 
 ---
 
@@ -36,14 +43,26 @@ H1-B-Economic-Impact-Dashboard/
 │   ├── app/
 │   │   ├── api/              # API routes for data fetching
 │   │   │   ├── covid-trends/route.ts
+│   │   │   ├── covid-industry/route.ts
+│   │   │   ├── covid-state/route.ts
+│   │   │   ├── employer-metrics/route.ts
+│   │   │   ├── exposure-metrics/route.ts
 │   │   │   ├── industry-exposure/route.ts
 │   │   │   ├── state-exposure/route.ts
 │   │   │   ├── industry-metrics/route.ts
 │   │   │   └── state-metrics/route.ts
 │   │   ├── page.tsx          # Main dashboard page
+│   │   ├── globals.css
 │   │   └── layout.tsx        # Root layout
 │   ├── components/           # React components
-│   │   ├── StateHeatmap.tsx  # US map visualization
+│   │   ├── CovidIndustryChart.tsx
+│   │   ├── CovidStateChart.tsx
+│   │   ├── EmployerLeaderBoard.tsx
+│   │   ├── ExposureMetricsGrid.tsx
+│   │   ├── ExposureScatterPlot.tsx
+│   │   ├── ExposureStateHeatmap.tsx
+│   │   ├── ExposureTopIndustries.tsx
+│   │   ├── StateHeatmap.tsx  
 │   │   ├── IndustryCharts.tsx
 │   │   ├── StateCharts.tsx
 │   │   └── DashboardFilters.tsx
@@ -55,11 +74,15 @@ H1-B-Economic-Impact-Dashboard/
 │   ├── schema.sql           # PostgreSQL schema definition
 │   ├── COVID_feature.sql    # Feature 2 query
 │   ├── company_exposure.sql # Feature 3 query
+│   ├── employer_matrics.sql
 │   ├── load_data_fast.py    # ETL script for H-1B data
+│   ├── load_data.py
 │   ├── load_naics_lookup.py # NAICS industry code loader
 │   └── GCP_SETUP_GUIDE.md   # Cloud SQL setup instructions
 ├── analysis/                 # Python analysis scripts
+│   ├── faeture1_quick_analysis.py
 │   └── feature1_industry_analysis.py
+├── README.md
 └── data/                    # Raw CSV data (not in Git)
 ```
 
@@ -228,6 +251,9 @@ npm run lint
 - **`mv_industry_metrics`**: Pre-aggregated metrics by industry and fiscal year
 - **`mv_state_metrics`**: Pre-aggregated metrics by state and fiscal year
 - **`mv_occupation_metrics`**: Pre-aggregated metrics by occupation
+- **`mv_covid_trend_analysis`** 
+- **`mv_exposure_score_industry`**
+- **`mv_employer_metrics`**
 
 **Refresh Views After Data Changes:**
 ```sql
@@ -238,25 +264,44 @@ SELECT refresh_all_views();
 
 ## 🎨 Key Features
 
-### 1. Geographic Heatmap
-- Interactive US map with color-coded states
-- Hover tooltips showing state name and application count
-- Color scale from light blue (fewer applications) to dark blue (more applications)
+### 1. Geographic Heatmaps
+- Interactive U.S. choropleth map showing **H-1B certified application volume by state**
+- Hover tooltips with state name/abbreviation and application count
+- Legend for interpreting relative intensity across states
 
-### 2. Industry Analysis
-- Top 10 industries by application volume (bar chart)
-- Average and median wages by industry
-- Detailed statistics table with employer counts
+### 2. Employer Analysis
+- **Top Employers by Certified Applications** (bar chart)
+- Highlights sponsorship concentration and dominant filers under the selected filters
+- Hover tooltips show exact certified application counts
 
-### 3. State Analysis
-- Top 15 states by application volume (bar chart)
-- Total wages by state (in millions)
-- Regional economic impact metrics
+### 3. Industry Analysis
+- **Top 10 Industries by Applications** (bar chart)
+- **Average vs. Median Wages by Industry** (grouped bars) to surface skew/outliers
+- **Industry Details Table** for long-tail industries, including application counts and employer totals
 
-### 4. Dynamic Filters
-- **Year**: 2020-2024
-- **Industry**: Filter by NAICS industry code
-- **State**: Filter by US state abbreviation
+### 4. State Analysis
+- **Top 15 States by Applications** (bar chart)
+- **Total Wages by State** (in millions) to estimate wage mass supported by H-1B roles
+- **State Details Table** including Applications, Distinct Employers, Avg Wage, and Total Wages
+
+### 5. COVID Trends (2019 → 2020)
+- **Industry Impact**: % change in certified applications from 2019 to 2020
+- **State Impact**: % change in certified applications from 2019 to 2020
+- Quickly identifies regions and sectors most disrupted during the COVID era
+
+### 6. Policy Exposure Modeling
+- Stress-test scenario modeling a **$100,000 fee per certified H-1B application**
+- KPI summary cards (Total Policy Impact, Critical Industries/States, High Concentration via HHI threshold)
+- Rankings and visuals:
+  - Top Industries by Exposure Score
+  - Exposure vs Employer Concentration bubble chart
+  - State Exposure choropleth map with hover details
+
+### 7. Dynamic Filters
+- **Year**: 2009–2024 (depends on loaded dataset range)
+- **Industry**: Filter by NAICS industry code (or “All”)
+- **State**: Filter by U.S. state abbreviation (or “All”)
+- Filters apply consistently across tabs and refresh charts/tables together
 
 ---
 
