@@ -13,6 +13,7 @@ import ExposureScatterPlot from '@/components/ExposureScatterPlot';
 import ExposureTopIndustries from '@/components/ExposureTopIndustries';
 import ExposureStateHeatmap from '@/components/ExposureStateHeatmap';
 import ExposureMetricsGrid from '@/components/ExposureMetricsGrid';
+import EmployerLeaderboard from '@/components/EmployerLeaderBoard';
 
 export default function Dashboard() {
   const [industryData, setIndustryData] = useState<IndustryMetric[]>([]);
@@ -20,6 +21,8 @@ export default function Dashboard() {
   const [covidData, setCovidData] = useState<any[]>([]);
   const [exposureIndustryData, setExposureIndustryData] = useState<any[]>([]);
   const [exposureStateData, setExposureStateData] = useState<any[]>([]);
+
+  const [employerData, setEmployerData] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +49,19 @@ export default function Dashboard() {
         fetch(`/api/industry-metrics?${industryParams.toString()}`),
         fetch(`/api/state-metrics?${stateParams.toString()}`),
       ]);
+
+      const employerParams = new URLSearchParams();
+      if (selectedYear) employerParams.append('year', selectedYear.toString());
+      if (selectedIndustry) employerParams.append('industry', selectedIndustry);
+      employerParams.append('limit', '50');
+
+      const employerRes = await fetch(`/api/employer-metrics?${employerParams.toString()}`);
+      if (employerRes.ok) {
+        const employerJson = await employerRes.json();
+        setEmployerData(employerJson.data || []);
+      } else {
+        setEmployerData([]);
+      }
 
       if (!industryRes.ok || !stateRes.ok) {
         throw new Error('Failed to fetch overview data');
@@ -126,33 +142,30 @@ export default function Dashboard() {
           <nav className="flex space-x-6">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`pb-2 font-medium ${
-                activeTab === 'overview'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-slate-500'
-              }`}
+              className={`pb-2 font-medium ${activeTab === 'overview'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500'
+                }`}
             >
               Overview
             </button>
 
             <button
               onClick={() => setActiveTab('covid')}
-              className={`pb-2 font-medium ${
-                activeTab === 'covid'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-slate-500'
-              }`}
+              className={`pb-2 font-medium ${activeTab === 'covid'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500'
+                }`}
             >
               COVID Trends
             </button>
 
             <button
               onClick={() => setActiveTab('exposure')}
-              className={`pb-2 font-medium ${
-                activeTab === 'exposure'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-slate-500'
-              }`}
+              className={`pb-2 font-medium ${activeTab === 'exposure'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500'
+                }`}
             >
               Policy Exposure
             </button>
@@ -203,10 +216,13 @@ export default function Dashboard() {
               <StateHeatmap data={stateData} />
             </div>
 
+            <EmployerLeaderboard data={employerData} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <IndustryCharts data={industryData} />
               <StateCharts data={stateData} />
             </div>
+
+
           </>
         )}
 
@@ -219,7 +235,7 @@ export default function Dashboard() {
 
         {!loading && activeTab === 'exposure' && (
           <div className="space-y-10">
-            <ExposureMetricsGrid 
+            <ExposureMetricsGrid
               industryData={exposureIndustryData}
               stateData={exposureStateData}
             />

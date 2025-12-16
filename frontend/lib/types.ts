@@ -20,7 +20,7 @@ export interface StateMetric {
   fiscal_year: number;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
@@ -62,4 +62,17 @@ export interface ExposureMetric {
 
   exposure_score: number;
   estimated_fee_shock_millions: number;
+}
+
+export interface EmployerMetric {
+  emp_id: string;
+  emp_name: string;
+  industry: string | null;
+  industry_name?: string;
+  total_applications: number;
+  states_covered: number;
+  avg_annual_wage: number;
+  median_annual_wage: number;
+  total_annual_wages: number;
+  fiscal_year: number;
 }
