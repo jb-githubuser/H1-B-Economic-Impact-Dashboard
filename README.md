@@ -332,36 +332,15 @@ The database connection pool (`lib/db.ts`) reuses connections to reduce overhead
 
 ---
 
-## 🚢 Deployment
-
-### Deploy to Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com) and import your repository
-3. Add environment variables in Vercel dashboard:
-   - `DB_HOST`
-   - `DB_PORT`
-   - `DB_NAME`
-   - `DB_USER`
-   - `DB_PASSWORD`
-4. Deploy!
-
-**Important**: Make sure your GCP Cloud SQL instance allows connections from Vercel's IP ranges (or use `0.0.0.0/0` for development).
-
-### Deploy to GCP App Engine
-
-See [Next.js GCP Deployment Guide](https://cloud.google.com/appengine/docs/flexible/nodejs/quickstart)
-
----
 
 ## 👥 Team
 
 - **Jayden Bai**
-- **Unnati**
-- **Avery**
+- **Unnati Agrawal**
+- **Avery Mattoon**
 
 **Course**: CS 554 - Advanced Database Systems
-**Institution**: Stevens Institute of Technology
+**Institution**: Emory University
 **Semester**: Fall 2024
 
 ---
