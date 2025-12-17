@@ -72,6 +72,7 @@ H1-B-Economic-Impact-Dashboard/
 │   └── package.json
 ├── database/                 # Database setup & ETL
 │   ├── schema.sql           # PostgreSQL schema definition
+│   ├── data_cleaning.py
 │   ├── COVID_feature.sql    # Feature 2 query
 │   ├── company_exposure.sql # Feature 3 query
 │   ├── employer_matrics.sql
@@ -398,6 +399,6 @@ This project is for academic purposes only.
 
 ## 🙏 Acknowledgments
 
-- H-1B data sourced from [U.S. Department of Labor](https://www.dol.gov/)
+- H-1B data sourced from [U.S. Department of Labor]([https://www.dol.gov/](https://www.dol.gov/agencies/eta/foreign-labor/performance)
 - GeoJSON maps from [us-atlas](https://github.com/topojson/us-atlas)
 - Built with [Next.js](https://nextjs.org/), [Recharts](https://recharts.org/), and [react-simple-maps](https://www.react-simple-maps.io/)
