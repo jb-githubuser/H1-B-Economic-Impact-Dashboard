@@ -130,6 +130,9 @@ DATABASE_URL=postgresql://postgres:password@host:5432/h1b_economic_impact
 - **mv_industry_metrics** - Pre-aggregated metrics by industry
 - **mv_state_metrics** - Pre-aggregated metrics by state
 - **mv_occupation_metrics** - Pre-aggregated metrics by occupation
+- **mv_covid_trend_analysis**
+- **mv_exposure_score_industry**
+- **mv_employer_metrics**
 
 ## Data Loading Performance
 
@@ -155,10 +158,3 @@ DATABASE_URL=postgresql://postgres:password@host:5432/h1b_economic_impact
 - Check indexes: `\di` in psql
 - Use EXPLAIN ANALYZE for query optimization
 
-## Next Steps
-
-After database is set up:
-1. Test queries for Feature 1 analysis
-2. Build Next.js API routes
-3. Create dashboard frontend
-4. Set up automated view refresh (cron job)
